@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>โปรแกรมสุ่มตัวเลข</title>
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+      text-align: center;
+      background-color: #f0f8ff;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 2em;
+      color: #2c3e50;
+    }
+    label, input {
+      font-size: 1em;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+      width: 100px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      margin: 10px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 3em;
+      color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎲 โปรแกรมสุ่มตัวเลข</h1>
+  <div>
+    <label>เลขเริ่มต้น: <input type="number" id="startNum" value="1"></label>
+    <label>เลขสิ้นสุด: <input type="number" id="endNum" value="100"></label>
+  </div>
+
+  <div>
+    <button onclick="startRandom()">สุ่มเลขครั้งเดียว</button>
+    <button onclick="startAutoRandom()">เริ่มสุ่มอัตโนมัติ (ทุก 6 วินาที)</button>
+    <button onclick="stopAutoRandom()">หยุดสุ่มอัตโนมัติ</button>
+    <button onclick="resetRandom()">รีเซ็ต</button>
+  </div>
+
+  <div id="result">-</div>
+
+  <script>
+    let availableNumbers = [];
+    let autoInterval = null;
+
+    function startRandom() {
+      const start = parseInt(document.getElementById('startNum').value);
+      const end = parseInt(document.getElementById('endNum').value);
+
+      if (isNaN(start) || isNaN(end) || start > end) {
+        alert("กรุณากรอกช่วงตัวเลขให้ถูกต้อง");
+        return;
+      }
+
+      if (availableNumbers.length === 0) {
+        for (let i = start; i <= end; i++) {
+          availableNumbers.push(i);
+        }
+      }
+
+      if (availableNumbers.length === 0) {
+        alert("ไม่มีตัวเลขให้สุ่มแล้ว");
+        stopAutoRandom();
+        return;
+      }
+
+      const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+      const randomNum = availableNumbers.splice(randomIndex, 1)[0];
+
+      document.getElementById('result').textContent = randomNum;
+
+      const msg = new SpeechSynthesisUtterance(randomNum.toString());
+      msg.lang = 'th-TH';
+
+      const voices = speechSynthesis.getVoices();
+      const thaiVoice = voices.find(v => v.lang === 'th-TH');
+      if (thaiVoice) msg.voice = thaiVoice;
+
+      window.speechSynthesis.speak(msg);
+    }
+
+    function startAutoRandom() {
+      if (autoInterval) return; // ป้องกันกดซ้ำ
+
+      startRandom(); // เรียกครั้งแรกทันที
+      autoInterval = setInterval(() => {
+        startRandom();
+      }, 6000); // 6 วินาที
+    }
+
+    function stopAutoRandom() {
+      clearInterval(autoInterval);
+      autoInterval = null;
+    }
+
+    function resetRandom() {
+      availableNumbers = [];
+      document.getElementById('result').textContent = "-";
+      window.speechSynthesis.cancel();
+      stopAutoRandom();
+    }
+
+    window.speechSynthesis.onvoiceschanged = () => {};
+  </script>
+</body>
+</html>
